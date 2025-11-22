@@ -23,4 +23,4 @@ cs3200_final_project/
 ```
 
 NOTE FOR THE CSV FILES:
-In `/data/raw`, there should be a `raw_csv.zip` file. Make sure to unzip this file so you can get the `.csv` files on your machine (make sure it's still in `/data/raw` after unzipping). Do not commit the `.csv` files, as they are too large for GitHub.
+In `/data/raw`, there should be a `raw.zip` file. Make sure to unzip this file so you can get the `.csv` files on your machine (make sure it's still in `/data/raw` after unzipping). Do not commit the `.csv` files, as they are too large for GitHub.
