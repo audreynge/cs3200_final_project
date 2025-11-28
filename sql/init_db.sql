@@ -1,11 +1,11 @@
 DROP DATABASE IF EXISTS mbta;
 CREATE DATABASE mbta;
 USE mbta;
-DROP TABLE IF EXISTS rail_ridership;
 
+DROP TABLE IF EXISTS rail_ridership;
 -- create rail ridership
 CREATE TABLE rail_ridership (
-	object_id INT PRIMARY KEY,
+	object_id INT,
     mode VARCHAR(50),
     season VARCHAR(50),
     route_id VARCHAR(50),
@@ -24,8 +24,7 @@ CREATE TABLE rail_ridership (
     average_ons INT,
     average_offs INT,
     average_flow INT);
-
-
+    
 -- load rail ridership
 LOAD DATA LOCAL INFILE 'C:/ProgramData/MySQL/MySQL Server 8.0/Uploads/rail_ridership.csv'
 INTO TABLE rail_ridership
@@ -52,13 +51,17 @@ IGNORE 1 LINES(
     average_flow,
     object_id)
 SET direction = CASE WHEN direction_id = 0 THEN 'Inbound' ELSE 'Outbound' END;
-
+-- add primary key
+ALTER TABLE rail_ridership
+ADD rr_id INT PRIMARY KEY AUTO_INCREMENT;
 -- check correctness 
 SELECT * from rail_ridership;
 
+
+DROP TABLE IF EXISTS neighborhood_income;
 -- income by neighborhood
 CREATE TABLE neighborhood_income (
-    neighborhood VARCHAR(100) PRIMARY KEY,
+    neighborhood VARCHAR(100),
     median_household_income INT,
     total_households INT,
 
@@ -87,7 +90,7 @@ CREATE TABLE neighborhood_income (
     pct_150000_plus DECIMAL);
 
 -- load neighborhood income
-LOAD DATA LOCAL INFILE 'C:/ProgramData/MySQL/MySQL Server 8.0/Uploads/boston neighborhood income - Sheet1.csv'
+LOAD DATA LOCAL INFILE 'C:/ProgramData/MySQL/MySQL Server 8.0/Uploads/boston_neighborhood_income.csv'
 INTO TABLE neighborhood_income
 FIELDS TERMINATED BY ',' 
 OPTIONALLY ENCLOSED BY '"'
@@ -112,13 +115,125 @@ IGNORE 1 LINES(
     pct_100000_149999,
     income_150000_plus,
     pct_150000_plus);
-select * from neighborhood_income;
+-- add primary key
+ALTER TABLE neighborhood_income
+ADD neighborhood_id INT PRIMARY KEY AUTO_INCREMENT;
+-- check
+SELECT * FROM neighborhood_income;
 
+
+DROP TABLE IF EXISTS stop_neighborhood;
+CREATE TABLE stop_neighborhood (
+    stop_id VARCHAR(50) PRIMARY KEY,
+    stop_name VARCHAR(255),
+    neighborhood_name VARCHAR(100));
+
+LOAD DATA LOCAL INFILE 'C:/ProgramData/MySQL/MySQL Server 8.0/Uploads/stop_neighborhood.csv'
+INTO TABLE stop_neighborhood
+FIELDS TERMINATED BY ',' 
+OPTIONALLY ENCLOSED BY '"'
+LINES TERMINATED BY '\n'
+IGNORE 1 LINES
+(stop_id, stop_name, neighborhood_name);
+-- check
+SELECT * FROM stop_neighborhood;
+
+
+DROP TABLE IF EXISTS bus_ridership;
+-- create bus table
+CREATE TABLE bus_ridership (
+    mode VARCHAR(50),
+    season VARCHAR(50),
+    route_id VARCHAR(50),
+    route_name VARCHAR(100),
+    route_variant VARCHAR(50),
+    stop_sequence INT,
+    direction_id VARCHAR(50),
+    day_type_id VARCHAR(50),
+    day_type_name VARCHAR(50),
+    time_period_id VARCHAR(50),
+    time_period_name VARCHAR(100),
+    stop_name VARCHAR(255),
+    stop_id VARCHAR(50),
+    average_ons DECIMAL,
+    average_offs DECIMAL,
+    average_load DECIMAL,
+    num_trips INT,
+    ons_all_trips DECIMAL,
+    object_id INT );
+
+-- load bus data
+LOAD DATA LOCAL INFILE 'C:/ProgramData/MySQL/MySQL Server 8.0/Uploads/bus_ridership.csv'
+INTO TABLE bus_ridership
+FIELDS TERMINATED BY ',' 
+OPTIONALLY ENCLOSED BY '"'
+LINES TERMINATED BY '\n'
+IGNORE 1 LINES(
+	mode,
+    season,
+    route_id,
+    route_name,
+    route_variant,
+    stop_sequence,
+    direction_id,
+    day_type_id,
+    day_type_name,
+    time_period_id,
+    time_period_name,
+    stop_name,
+    stop_id,
+    average_ons,
+    average_offs,
+    average_load,
+    num_trips,
+    ons_all_trips,
+    object_id);
+-- add primary key
+ALTER TABLE bus_ridership
+ADD bus_id INT PRIMARY KEY AUTO_INCREMENT;
+
+
+DROP TABLE IF EXISTS directions;
+CREATE TABLE directions (
+direction_id INT PRIMARY KEY,
+direction_name VARCHAR(20)
+);
+
+INSERT INTO directions (direction_id, direction_name) VALUES
+(0, 'Inbound'),
+(1, 'Outbound');
+-- check
+SELECT * FROM directions;
+
+DROP TABLE IF EXISTS line_info;
+CREATE TABLE line_info (
+    line_id INT PRIMARY KEY AUTO_INCREMENT,
+    line_name VARCHAR(50),
+    color VARCHAR(20),
+    mode VARCHAR(50)
+);
+
+INSERT INTO line_info (line_name, color, mode)
+VALUES
+('Red Line', 'Red', 'Rapid Transit'),
+('Orange Line', 'Orange', 'Rapid Transit'),
+('Blue Line', 'Blue', 'Rapid Transit'),
+('Green Line', 'Green', 'Light Rail'),
+('Green Line B', 'Green', 'Light Rail'),
+('Green Line C', 'Green', 'Light Rail'),
+('Green Line D', 'Green', 'Light Rail'),
+('Green Line E', 'Green', 'Light Rail'),
+('Mattapan Trolley', 'Red', 'Light Rail');
+-- check
+SELECT * FROM line_info;
+
+
+DROP TABLE IF EXISTS stops;
 -- create stops
 CREATE TABLE stops (
     x DOUBLE,
     y DOUBLE,
-    objectid INT PRIMARY KEY,
+    objectid INT,
     stop_id VARCHAR(100),
     stop_code VARCHAR(100),
     stop_name VARCHAR(255),
@@ -191,68 +306,25 @@ IGNORE 1 LINES(
     created_date,
     last_edited_user,
     last_edited_date);
-select * from stops;
+-- add primary key
+ALTER TABLE stops
+ADD COLUMN stop_id_pk INT AUTO_INCREMENT PRIMARY KEY;
+-- check
+SELECT * FROM stops;
 
-CREATE TABLE stop_neighborhood (
-    stop_id VARCHAR(50) PRIMARY KEY,
-    stop_name VARCHAR(255),
-    neighborhood_name VARCHAR(100));
 
-LOAD DATA LOCAL INFILE 'C:/ProgramData/MySQL/MySQL Server 8.0/Uploads/stop_neighborhood.csv'
-INTO TABLE stop_neighborhood
-FIELDS TERMINATED BY ',' 
-OPTIONALLY ENCLOSED BY '"'
-LINES TERMINATED BY '\n'
-IGNORE 1 LINES
-(stop_id, stop_name, neighborhood_name);
-
-select * from stop_neighborhood;
-
--- create bus table
-CREATE TABLE bus_ridership (
-    mode VARCHAR(50),
-    season VARCHAR(50),
-    route_id VARCHAR(50),
-    route_name VARCHAR(100),
-    route_variant VARCHAR(50),
-    stop_sequence INT,
-    direction_id VARCHAR(50),
-    day_type_id VARCHAR(50),
-    day_type_name VARCHAR(50),
-    time_period_id VARCHAR(50),
-    time_period_name VARCHAR(100),
-    stop_name VARCHAR(255),
-    stop_id VARCHAR(50),
-    average_ons DECIMAL,
-    average_offs DECIMAL,
-    average_load DECIMAL,
-    num_trips INT,
-    ons_all_trips DECIMAL,
-    object_id INT PRIMARY KEY);
-
--- load bus data
-LOAD DATA LOCAL INFILE 'C:/ProgramData/MySQL/MySQL Server 8.0/Uploads/bus_ridership.csv'
-INTO TABLE bus_ridership
-FIELDS TERMINATED BY ',' 
-OPTIONALLY ENCLOSED BY '"'
-LINES TERMINATED BY '\n'
-IGNORE 1 LINES(
-	mode,
-    season,
-    route_id,
-    route_name,
-    route_variant,
-    stop_sequence,
-    direction_id,
-    day_type_id,
-    day_type_name,
-    time_period_id,
-    time_period_name,
-    stop_name,
-    stop_id,
-    average_ons,
-    average_offs,
-    average_load,
-    num_trips,
-    ons_all_trips,
-    object_id);
+DROP TABLE IF EXISTS stop_line;
+CREATE TABLE stop_line (
+    id INT AUTO_INCREMENT PRIMARY KEY,
+    stop_id_pk INT,
+    line_id INT,
+    FOREIGN KEY (stop_id_pk) REFERENCES stops(stop_id_pk),
+    FOREIGN KEY (line_id) REFERENCES line_info(line_id)
+);
+INSERT INTO stop_line (stop_id_pk, line_id)
+SELECT DISTINCT s.stop_id_pk, l.line_id
+FROM rail_ridership rr
+JOIN stops s ON rr.stop_id = s.stop_id
+JOIN line_info l ON rr.route_name = l.line_name;
+-- check
+SELECT * FROM stop_line;
