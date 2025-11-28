@@ -27,7 +27,7 @@ CREATE TABLE rail_ridership (
 
 
 -- load rail ridership
-LOAD DATA INFILE 'C:/ProgramData/MySQL/MySQL Server 8.0/Uploads/rail_ridership.csv'
+LOAD DATA LOCAL INFILE 'C:/ProgramData/MySQL/MySQL Server 8.0/Uploads/rail_ridership.csv'
 INTO TABLE rail_ridership
 FIELDS TERMINATED BY ','
 OPTIONALLY ENCLOSED BY '"'
@@ -87,7 +87,7 @@ CREATE TABLE neighborhood_income (
     pct_150000_plus DECIMAL);
 
 -- load neighborhood income
-LOAD DATA INFILE 'C:/ProgramData/MySQL/MySQL Server 8.0/Uploads/boston neighborhood income - Sheet1.csv'
+LOAD DATA LOCAL INFILE 'C:/ProgramData/MySQL/MySQL Server 8.0/Uploads/boston neighborhood income - Sheet1.csv'
 INTO TABLE neighborhood_income
 FIELDS TERMINATED BY ',' 
 OPTIONALLY ENCLOSED BY '"'
@@ -151,7 +151,7 @@ CREATE TABLE stops (
     last_edited_user VARCHAR(100),
     last_edited_date VARCHAR(50));
 -- load stops
-LOAD DATA INFILE 'C:/ProgramData/MySQL/MySQL Server 8.0/Uploads/Rapid_Transit_Stops.csv'
+LOAD DATA LOCAL INFILE 'C:/ProgramData/MySQL/MySQL Server 8.0/Uploads/Rapid_Transit_Stops.csv'
 INTO TABLE stops
 FIELDS TERMINATED BY ',' 
 OPTIONALLY ENCLOSED BY '"'
@@ -198,7 +198,7 @@ CREATE TABLE stop_neighborhood (
     stop_name VARCHAR(255),
     neighborhood_name VARCHAR(100));
 
-LOAD DATA INFILE 'C:/ProgramData/MySQL/MySQL Server 8.0/Uploads/stop_neighborhood.csv'
+LOAD DATA LOCAL INFILE 'C:/ProgramData/MySQL/MySQL Server 8.0/Uploads/stop_neighborhood.csv'
 INTO TABLE stop_neighborhood
 FIELDS TERMINATED BY ',' 
 OPTIONALLY ENCLOSED BY '"'
@@ -231,7 +231,7 @@ CREATE TABLE bus_ridership (
     object_id INT PRIMARY KEY);
 
 -- load bus data
-LOAD DATA INFILE 'C:/ProgramData/MySQL/MySQL Server 8.0/Uploads/bus_ridership.csv'
+LOAD DATA LOCAL INFILE 'C:/ProgramData/MySQL/MySQL Server 8.0/Uploads/bus_ridership.csv'
 INTO TABLE bus_ridership
 FIELDS TERMINATED BY ',' 
 OPTIONALLY ENCLOSED BY '"'
