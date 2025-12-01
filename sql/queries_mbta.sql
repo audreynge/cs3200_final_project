@@ -113,3 +113,35 @@ JOIN neighborhood_mapping nm ON sn.neighborhood_name = nm.raw_name
 JOIN neighborhood_income ni ON nm.income_name = ni.neighborhood
 GROUP BY ni.neighborhood, ni.median_household_income
 ORDER BY rail_ridership DESC;
+
+-- Trigger for identifying status of alerts
+ALTER TABLE alerts ADD COLUMN status VARCHAR(20);
+
+DROP TRIGGER IF EXISTS classify_alert_status;
+DELIMITER //
+CREATE TRIGGER classify_alert_status
+BEFORE INSERT ON alerts
+FOR EACH ROW
+BEGIN
+    IF NEW.notif_start <= NOW() AND (NEW.notif_end IS NULL OR NEW.notif_end > NOW()) THEN
+        SET NEW.status = 'Active';
+    ELSEIF NEW.notif_start > NOW() THEN
+        SET NEW.status = 'Upcoming';
+    ELSE
+        SET NEW.status = 'Expired';
+    END IF;
+END //
+
+DELIMITER ;
+
+-- Test case for trigger
+INSERT INTO alerts (
+    alert_id, notif_start, notif_end, created_dt) VALUES (9999, 
+    NOW() - INTERVAL 2 HOUR,   -- started earlier today
+    NOW() + INTERVAL 3 HOUR,   -- ends later today
+    NOW());
+
+SELECT alert_id, status, notif_start, notif_end
+FROM alerts
+WHERE alert_id = 9999;
+
