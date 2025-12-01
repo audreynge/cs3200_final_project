@@ -328,3 +328,99 @@ JOIN stops s ON rr.stop_id = s.stop_id
 JOIN line_info l ON rr.route_name = l.line_name;
 -- check
 SELECT * FROM stop_line;
+
+-- load alerts
+DROP TABLE IF EXISTS alerts;
+CREATE TABLE alerts (
+    alert_id            INT PRIMARY KEY,
+    gui_mode_name       VARCHAR(100),
+    alert_time_type     VARCHAR(50),
+    effect_name         VARCHAR(100),
+    effect_code         VARCHAR(50),
+    cause_name          VARCHAR(100),
+    cause_code          VARCHAR(50),
+    affent_list         VARCHAR(500),
+    severity_name       VARCHAR(100),
+    severity_code       INT,
+    header              TEXT,
+    details             TEXT,
+    url                 VARCHAR(500),
+    notif_start         TIMESTAMP,
+    notif_end           TIMESTAMP,
+    created_dt          TIMESTAMP,
+    last_modified_dt    TIMESTAMP,
+    closed_dt           TIMESTAMP,
+    alert_lifecycle     VARCHAR(50),
+    color               VARCHAR(50),
+    service_effect_text TEXT,
+    short_header        TEXT,
+    timeframe_text      VARCHAR(200),
+    ObjectId            INT
+);
+
+LOAD DATA LOCAL INFILE 'C:/ProgramData/MySQL/MySQL Server 8.0/Uploads/MBTA_Service_Alerts.csv'
+INTO TABLE alerts
+FIELDS TERMINATED BY ','
+OPTIONALLY ENCLOSED BY '"'
+LINES TERMINATED BY '\n'
+IGNORE 1 LINES
+(
+    alert_id,
+    gui_mode_name,
+    alert_time_type,
+    effect_name,
+    effect_code,
+    cause_name,
+    cause_code,
+    affent_list,
+    severity_name,
+    severity_code,
+    header,
+    details,
+    url,
+    notif_start,
+    notif_end,
+    created_dt,
+    last_modified_dt,
+    closed_dt,
+    alert_lifecycle,
+    color,
+    service_effect_text,
+    short_header,
+    timeframe_text,
+    ObjectId
+);
+
+CREATE TABLE neighborhood_mapping (
+    raw_name VARCHAR(100) PRIMARY KEY,
+    income_name VARCHAR(100)
+);
+
+INSERT INTO neighborhood_mapping (raw_name, income_name)
+SELECT DISTINCT neighborhood_name, NULL
+FROM stop_neighborhood;
+
+UPDATE neighborhood_mapping
+SET income_name = raw_name
+WHERE raw_name IN (
+    'Allston', 'Back Bay', 'Beacon Hill', 'Boston', 'Brighton',
+    'Charlestown', 'Chinatown', 'Dorchester', 'Downtown', 'East Boston',
+    'Fenway', 'Hyde Park', 'Jamaica Plain', 'Longwood', 'Mattapan',
+    'Mission Hill', 'North End', 'Roslindale', 'Roxbury',
+    'South Boston', 'South Boston Waterfront', 'South End',
+    'West End', 'West Roxbury'
+);
+
+UPDATE neighborhood_mapping
+SET income_name = 'South End'
+WHERE raw_name = 'Bay Village';
+
+UPDATE neighborhood_mapping
+SET income_name = 'Downtown'
+WHERE raw_name = 'Leather District';
+
+-- Harbor Islands has no population leave as NULL
+UPDATE neighborhood_mapping
+SET income_name = NULL
+WHERE raw_name = 'Harbor Islands';
+
