@@ -21,7 +21,7 @@ def clean_alerts(df: pd.DataFrame) -> pd.DataFrame:
 
     # drop unnecessary columns
     drop_cols = ['url', 'timeframe_text', 'header', 'alert_lifecycle', 
-                'details', 'affent_list', 'severity_name']
+                'details', 'affent_list', 'severity_name', 'ObjectId']
     df = df.drop(columns=drop_cols, errors="ignore")
 
     # filter out placeholder rows
