@@ -77,20 +77,17 @@ JOIN rail_stop rs USING (stop_id)
 JOIN rail_line rl USING (line_id)
 GROUP BY rl.line_name;
 
-
-## bus_stop query returning blank for these 4 queries ?? 
 -- Are ridership and income related?
 SELECT 
     ni.neighborhood,
     ni.median_household_income,
-    SUM(rr.total_ons + rr.total_offs) AS total_ridership
-FROM rail_ridership rr
-JOIN bus_stop bs ON rr.stop_id = bs.stop_id
-JOIN neighborhood_mapping nm ON bs.neighborhood_name = nm.raw_name
+    SUM(br.average_ons + br.average_offs) AS total_ridership
+FROM bus_ridership br
+JOIN bus_stop bs ON br.stop_id = bs.stop_id
+JOIN neighborhood_mapping nm ON CONCAT(bs.neighborhood_name, '%') LIKE CONCAT(nm.raw_name, '%')
 JOIN neighborhood_income ni ON nm.income_name = ni.neighborhood
 GROUP BY ni.neighborhood, ni.median_household_income
-ORDER BY total_ridership DESC;
-
+ORDER BY total_ridership ASC;
 
 -- The number of stations in each neighborhood?
 SELECT 
@@ -98,8 +95,8 @@ SELECT
     ni.median_household_income,
     COUNT(DISTINCT bs.stop_id) AS num_stations
 FROM bus_stop bs
-JOIN neighborhood_mapping nm ON bs.neighborhood_name LIKE nm.raw_name
-JOIN neighborhood_income ni ON bs.neighborhood_name = ni.neighborhood
+JOIN neighborhood_mapping nm ON CONCAT(bs.neighborhood_name, '%') LIKE CONCAT(nm.raw_name, '%')
+JOIN neighborhood_income ni ON CONCAT(bs.neighborhood_name, '%') LIKE CONCAT(ni.neighborhood, '%')
 GROUP BY ni.neighborhood, ni.median_household_income
 ORDER BY ni.median_household_income ASC;
 
@@ -110,40 +107,21 @@ SELECT
     SUM(br.average_ons + br.average_offs) AS bus_ridership
 FROM bus_ridership br
 JOIN bus_stop bs ON br.stop_id = bs.stop_id
-JOIN neighborhood_mapping nm ON bs.neighborhood_name = nm.raw_name
+JOIN neighborhood_mapping nm ON CONCAT(bs.neighborhood_name, '%') LIKE CONCAT(nm.raw_name, '%')
 JOIN neighborhood_income ni ON nm.income_name = ni.neighborhood
 GROUP BY ni.neighborhood, ni.median_household_income
 ORDER BY bus_ridership DESC;
 
-SELECT DISTINCT bs.neighborhood_name, ROUND(AVG(average_load), 2) as "avg_traffic"
-FROM bus_ridership br
-JOIN bus_stop bs USING (stop_id)
-GROUP BY bs.neighborhood_name
-ORDER BY avg_traffic DESC;
-
-
-
--- Which neighborhoods rely on the rail the most?
-SELECT 
-    ni.neighborhood,
-    ni.median_household_income,
-    SUM(rr.total_ons + rr.total_offs) AS rail_ridership
-FROM rail_ridership rr
-JOIN bus_stop bs ON rr.stop_id = bs.stop_id
-JOIN neighborhood_mapping nm ON sn.neighborhood_name = nm.raw_name
-JOIN neighborhood_income ni ON nm.income_name = ni.neighborhood
-GROUP BY ni.neighborhood, ni.median_household_income
-ORDER BY rail_ridership DESC;
 
 
 
 -- Trigger for identifying status of alerts
-ALTER TABLE alerts ADD COLUMN status VARCHAR(20);
+ALTER TABLE alert ADD COLUMN status VARCHAR(20);
 
 DROP TRIGGER IF EXISTS classify_alert_status;
 DELIMITER //
 CREATE TRIGGER classify_alert_status
-BEFORE INSERT ON alerts
+BEFORE INSERT ON alert
 FOR EACH ROW
 BEGIN
     IF NEW.notif_start <= NOW() AND (NEW.notif_end IS NULL OR NEW.notif_end > NOW()) THEN
@@ -158,12 +136,12 @@ END //
 DELIMITER ;
 
 -- Test case for trigger
-INSERT INTO alerts (
+INSERT INTO alert (
     alert_id, notif_start, notif_end, created_dt) VALUES (9999, 
     NOW() - INTERVAL 2 HOUR,   -- started earlier today
     NOW() + INTERVAL 3 HOUR,   -- ends later today
     NOW());
 
 SELECT alert_id, status, notif_start, notif_end
-FROM alerts
+FROM alert
 WHERE alert_id = 9999;
